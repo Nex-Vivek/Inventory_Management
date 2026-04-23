@@ -31,7 +31,10 @@ async function insertUser1() {
   }
 }
 
-insertUser1(); 
+insertUser();
+ 
+
+
 
 
 
