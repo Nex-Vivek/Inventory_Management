@@ -5,7 +5,7 @@ import {
   createProduct,
   updateProduct,
   deleteProduct,
-} from "../controller/product.controller.js";
+} from "../Controller/product.controller.js";
 import { isLoggedIn, isAdmin } from "../middleware/authmiddleware.js";
 
 const router = Router();
