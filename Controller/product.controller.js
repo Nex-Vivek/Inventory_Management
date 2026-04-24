@@ -113,8 +113,8 @@ export async function createProduct(req, res) {
 // Update  product
 
 export async function updateProduct(req, res) {
-  const { id } = req.params ; 
-  const { name, price, stock } = req.body ;
+  const { id } = req.params;
+  const { name, price, stock } = req.body;
 
   if (!id) {
     return res.status(400).json({
@@ -130,7 +130,7 @@ export async function updateProduct(req, res) {
     });
   }
 
-  try {  
+  try {
     const result = await db.transaction(async (tx) => {
       // Update product
       const [updatedProduct] = await tx
@@ -233,3 +233,32 @@ export async function deleteProduct(req, res) {
     });
   }
 }
+
+export async function admincarddetails(req, res) {
+  try {
+    const result = await db
+      .select({
+        totalProduct: sql`COUNT(${products.productName})`,
+        inventoryValue: sql`
+          SUM(${itemPrice.itemPrice} * COALESCE(${inventorys.stockIn}, 0))
+        `,
+      })
+      .from(products)
+      .leftJoin(itemPrice, eq(itemPrice.itemId, products.productId))
+      .leftJoin(inventorys, eq(inventorys.itemId, products.productId));
+
+    return res.status(200).json({
+      success: true,
+      data: result[0],
+    });
+  } catch (err) {
+    console.error("Admin card details error:", err);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch admin card details.",
+    });
+  }
+}
+
+

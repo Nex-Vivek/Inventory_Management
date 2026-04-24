@@ -20,7 +20,7 @@ export async function login(req, res) {
       .where(eq(users.email, email.toLowerCase()))
       .limit(1);
 
-    // User not found
+    // User not found  
     if (!user) {
       return res
         .status(401)
@@ -46,7 +46,8 @@ export async function login(req, res) {
       success: true,
       message: `Welcome back, ${user.name}!`,
       user: req.session.user,
-    });
+    }); 
+    
   } catch (err) {
     console.error("Login error:", err);
     res

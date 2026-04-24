@@ -13,7 +13,7 @@ export const users = pgTable("logintable", {
   name: varchar("name", { length: 100 }),
   email: varchar("email", { length: 100 }).unique().notNull(),
   password: text("password").notNull(),
-  role: varchar("role", { length: 20 }).notNull(), 
+  role: varchar("role", { length: 20 }).notNull(),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -55,5 +55,3 @@ export const inventorys = pgTable("inventorys", {
   stockOut: integer("stockout").default(0),
   stockAlert: integer("stockalert").default(20),
 });
-
-

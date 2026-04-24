@@ -5,6 +5,7 @@ import {
   createProduct,
   updateProduct,
   deleteProduct,
+  admincarddetails,
 } from "../Controller/product.controller.js";
 import { isLoggedIn, isAdmin } from "../middleware/authmiddleware.js";
 
@@ -13,6 +14,7 @@ const router = Router();
 // Both roles can read products
 router.get("/", isLoggedIn, getAllProducts);
 router.get("/:id", isLoggedIn, getProductById);
+router.get("/carddetails", isLoggedIn, admincarddetails);
 
 // Only admin can write
 router.post("/", isLoggedIn, isAdmin, createProduct);
