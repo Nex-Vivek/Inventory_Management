@@ -1,6 +1,17 @@
+import jwt from "jsonwebtoken";
 import { db } from "../db/index.js";
 import { users } from "../db/schema.js";
 import { eq } from "drizzle-orm";
+
+const JWT_SECRET = process.env.JWT_SECRET || "clothstock_jwt_secret_2024";
+const isProduction = process.env.NODE_ENV === "production";
+
+const COOKIE_OPTIONS = {
+  httpOnly: true,
+  secure: isProduction,
+  sameSite: isProduction ? "none" : "lax",
+  maxAge: 1000 * 60 * 60 * 24, // 1 day
+};
 
 // ── POST /api/auth/login
 export async function login(req, res) {
@@ -20,34 +31,36 @@ export async function login(req, res) {
       .where(eq(users.email, email.toLowerCase()))
       .limit(1);
 
-    // User not found  
     if (!user) {
       return res
         .status(401)
         .json({ success: false, message: "Invalid email or password." });
     }
 
-    // Check password
     if (user.password !== password) {
       return res
         .status(401)
         .json({ success: false, message: "Invalid email or password." });
     }
 
-    //  Credentials match — save to session (never store password in session!)
-    req.session.user = {
+    // Create JWT payload (never store password!)
+    const payload = {
       id: user.id,
-      //name: user.name,
+      name: user.name,
       email: user.email,
       role: user.role,
     };
 
+    const token = jwt.sign(payload, JWT_SECRET, { expiresIn: "1d" });
+
+    // Set HTTP-only cookie
+    res.cookie("token", token, COOKIE_OPTIONS);
+
     return res.status(200).json({
       success: true,
       message: `Welcome back, ${user.name}!`,
-      user: req.session.user,
-    }); 
-    
+      user: payload,
+    });
   } catch (err) {
     console.error("Login error:", err);
     res
@@ -56,26 +69,32 @@ export async function login(req, res) {
   }
 }
 
-//    ── POST /api/auth/logout
-
+// ── POST /api/auth/logout
 export function logout(req, res) {
-  req.session.destroy((err) => {
-    if (err) {
-      return res
-        .status(500)
-        .json({ success: false, message: "Logout failed." });
-    }
-    res.clearCookie("connect.sid"); // Remove session cookie from browser
-    res
-      .status(200)
-      .json({ success: true, message: "Logged out successfully." });
-  });
+  res.clearCookie("token", COOKIE_OPTIONS);
+  res.status(200).json({ success: true, message: "Logged out successfully." });
 }
 
-// Frontend calls this on page load to check if session is still active
+// ── GET /api/auth/me
 export function getMe(req, res) {
-  res.status(200).json({
-    success: true,
-    user: req.session.user,
-  });
+  const token = req.cookies?.token;
+
+  if (!token) {
+    return res
+      .status(401)
+      .json({ success: false, message: "Not authenticated." });
+  }
+
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    res.status(200).json({
+      success: true,
+      user: decoded,
+    });
+  } catch (err) {
+    res
+      .status(401)
+      .json({ success: false, message: "Invalid or expired token." });
+  }
 }
+

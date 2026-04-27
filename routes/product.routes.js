@@ -13,8 +13,8 @@ const router = Router();
 
 // Both roles can read products
 router.get("/", isLoggedIn, getAllProducts);
+router.get("/carddetails", isLoggedIn, admincarddetails);   // MUST be before /:id
 router.get("/:id", isLoggedIn, getProductById);
-router.get("/carddetails", isLoggedIn, admincarddetails);
 
 // Only admin can write
 router.post("/", isLoggedIn, isAdmin, createProduct);
