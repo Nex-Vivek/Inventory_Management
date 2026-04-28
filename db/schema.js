@@ -6,7 +6,10 @@ import {
   text,
   timestamp,
   numeric,
+  pgEnum,
 } from "drizzle-orm/pg-core";
+
+export const operationEnum = pgEnum("operation", ["IN", "OUT"]);
 
 export const users = pgTable("logintable", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -54,4 +57,14 @@ export const inventorys = pgTable("inventorys", {
   stockIn: integer("stockin").default(0),
   stockOut: integer("stockout").default(0),
   stockAlert: integer("stockalert").default(20),
+});
+
+export const transactions = pgTable("transactions", {
+  transactionid: uuid("transactionid").primaryKey().defaultRandom(),
+  itemid: uuid("itemid")
+    .notNull()
+    .references(() => products.productId),
+  operation: operationEnum("operation").notNull(),
+  quantity: integer("quantity").notNull(),
+  note: text("note"),
 });

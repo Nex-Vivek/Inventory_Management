@@ -11,25 +11,30 @@ export async function getAllProducts(req, res) {
   try {
     const result = await db
       .select({
-        productId:    products.productId,
-        productName:  products.productName,
-        categoryId:   products.categoryId,
-        categoryName: categorytable.categoryName,   // ← join category name
-        itemPrice:    itemPrice.itemPrice,           // ← join price
-        stockIn:      inventorys.stockIn,            // ← join stock
-        stockOut:     inventorys.stockOut,           // ← if you have this column
+        productId: products.productId,
+        productName: products.productName,
+        categoryId: products.categoryId,
+        categoryName: categorytable.categoryName, // ← join category name
+        itemPrice: itemPrice.itemPrice, // ← join price
+        stockIn: inventorys.stockIn, // ← join stock
+        stockOut: inventorys.stockOut, // ← if you have this column
       })
       .from(products)
-      .leftJoin(categorytable, eq(categorytable.categoryId, products.categoryId))
-      .leftJoin(itemPrice,     eq(itemPrice.itemId,         products.productId))
-      .leftJoin(inventorys,    eq(inventorys.itemId,        products.productId))
+      .leftJoin(
+        categorytable,
+        eq(categorytable.categoryId, products.categoryId),
+      )
+      .leftJoin(itemPrice, eq(itemPrice.itemId, products.productId))
+      .leftJoin(inventorys, eq(inventorys.itemId, products.productId));
 
-    res.status(200).json({ success: true, count: result.length, data: result })
+    res.status(200).json({ success: true, count: result.length, data: result });
   } catch (err) {
-    console.error("Get products error:", err)
-    res.status(500).json({ success: false, message: "Failed to fetch products." })
+    console.error("Get products error:", err);
+    res
+      .status(500)
+      .json({ success: false, message: "Failed to fetch products." });
   }
-} 
+}
 export async function getProductById(req, res) {
   const { id } = req.params;
 
@@ -242,19 +247,20 @@ export async function admincarddetails(req, res) {
   try {
     const result = await db
       .select({
-        totalProducts:  sql`COUNT(${products.productId})`,
-        totalValue:     sql`SUM(CAST(${itemPrice.itemPrice} AS numeric) * COALESCE(${inventorys.stockIn}, 0))`,
-        lowStock:       sql`COUNT(CASE WHEN (${inventorys.stockIn} - COALESCE(${inventorys.stockOut}, 0)) BETWEEN 1 AND 9 THEN 1 END)`,
-        outOfStock:     sql`COUNT(CASE WHEN (${inventorys.stockIn} - COALESCE(${inventorys.stockOut}, 0)) = 0 THEN 1 END)`,
+        totalProducts: sql`COUNT(${products.productId})`,
+        totalValue: sql`SUM(CAST(${itemPrice.itemPrice} AS numeric) * COALESCE(${inventorys.stockIn}, 0))`,
+        lowStock: sql`COUNT(CASE WHEN (${inventorys.stockIn} - COALESCE(${inventorys.stockOut}, 0)) BETWEEN 1 AND 9 THEN 1 END)`,
+        outOfStock: sql`COUNT(CASE WHEN (${inventorys.stockIn} - COALESCE(${inventorys.stockOut}, 0)) = 0 THEN 1 END)`,
       })
       .from(products)
-      .leftJoin(itemPrice,  eq(itemPrice.itemId,  products.productId))
-      .leftJoin(inventorys, eq(inventorys.itemId, products.productId))
+      .leftJoin(itemPrice, eq(itemPrice.itemId, products.productId))
+      .leftJoin(inventorys, eq(inventorys.itemId, products.productId));
 
-    return res.status(200).json({ success: true, data: result[0] })
+    return res.status(200).json({ success: true, data: result[0] });
   } catch (err) {
-    console.error("Admin card details error:", err)
-    return res.status(500).json({ success: false, message: "Failed to fetch admin card details." })
+    console.error("Admin card details error:", err);
+    return res
+      .status(500)
+      .json({ success: false, message: "Failed to fetch admin card details." });
   }
 }
-

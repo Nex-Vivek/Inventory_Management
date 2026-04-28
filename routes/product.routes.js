@@ -7,18 +7,28 @@ import {
   deleteProduct,
   admincarddetails,
 } from "../Controller/product.controller.js";
-import { isLoggedIn, isAdmin } from "../middleware/authmiddleware.js";
+
+import { updateStock } from "../Controller/stock.controller.js";
+
+import {
+  isLoggedIn,
+  isAdmin,
+  isManager,
+} from "../middleware/authmiddleware.js";
 
 const router = Router();
 
 // Both roles can read products
 router.get("/", isLoggedIn, getAllProducts);
-router.get("/carddetails", isLoggedIn, admincarddetails);   // MUST be before /:id
+router.get("/carddetails", isLoggedIn, admincarddetails); // MUST be before /:id
 router.get("/:id", isLoggedIn, getProductById);
 
 // Only admin can write
 router.post("/", isLoggedIn, isAdmin, createProduct);
 router.put("/:id", isLoggedIn, isAdmin, updateProduct);
 router.delete("/:id", isLoggedIn, isAdmin, deleteProduct);
+
+// only manager can do
+router.post("/update", isLoggedIn, isManager, updateStock);
 
 export default router;
